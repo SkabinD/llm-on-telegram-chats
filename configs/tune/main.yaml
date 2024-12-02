@@ -1,0 +1,14 @@
+### GLOBAL
+
+RANDOM_SEED: 1337
+
+### DATASET
+
+DATA_NAME: result.json
+DATA_DIR: data
+
+RESPONSE_NAME: "Dmitry S"
+
+### LLM
+
+MODEL_NAME: "IlyaGusev/saiga_gemma2_10b"
