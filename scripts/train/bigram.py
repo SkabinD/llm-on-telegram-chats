@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
@@ -7,15 +8,27 @@ if root_path not in sys.path:
     sys.path.append(root_path)
 
 import yaml
+import argparse
 
 import torch
 from torch.optim import AdamW
 from source.tokenizers.char import CharTokenizer
 from source.modules.bigram_language_model import BigramLanguageModel
 
-CONFIG_PATH = "configs/train/bigram_default.yaml"
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--config", type=str, required=False)
+args = parser.parse_args()
 
-with open(CONFIG_PATH, "r") as f:
+CONFIG_DIR = "configs/train"
+DATA_DIR = "data"
+SAVE_DIR = "artifacts"
+
+# DEFAULT_CONFIG_NAME = "bigram_default.yaml"
+
+config_name = args.config
+config_path = os.path.join(CONFIG_DIR, config_name)
+
+with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
 random_seed = config["RANDOM_SEED"]
@@ -37,10 +50,9 @@ if try_gpu:
 else:
     device = "cpu"
 
-DEFAULT_DATA_DIR = "data"
-DATA_FILE = os.path.join(DEFAULT_DATA_DIR, config["DATA_FILE_NAME"])
+DATA_PATH = os.path.join(DATA_DIR, config["DATA_FILE_NAME"])
 
-with open(DATA_FILE, "r", encoding="utf-8") as f:
+with open(DATA_PATH, "r", encoding="utf-8") as f:
     data = f.read()
     
 tokenizer = CharTokenizer()
@@ -94,6 +106,19 @@ for iter in range(max_iters + 1):
     optimizer.zero_grad(set_to_none=True)
     loss.backward()
     optimizer.step()
-    
-context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(tokenizer.decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+
+SAVE_NAME = str(datetime.now().strftime('%Y%m%d')) + "_" + config_name[:-5]
+SAVE_PATH = os.path.join(SAVE_DIR, SAVE_NAME)
+os.mkdir(SAVE_PATH)
+torch.save(model.state_dict(), os.path.join(SAVE_PATH, "model.pth"))
+tokenizer.save(os.path.join(SAVE_PATH, "tokenizer.json"))
+with open(os.path.join(SAVE_PATH, "config.yaml"), "w") as f:
+    yaml.dump(config, f)
+
+# SAVE_NAME = str(datetime.now().strftime('%Y%m%d')) + "_" + config_name[:-5] + ".pth"
+# SAVE_PATH = os.path.join(SAVE_DIR, SAVE_NAME)
+
+# torch.save(model.state_dict(), SAVE_PATH)
+
+# context = torch.zeros((1, 1), dtype=torch.long, device=device)
+# print(tokenizer.decode(m.generate(context, max_new_tokens=500)[0].tolist()))

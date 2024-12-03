@@ -19,12 +19,17 @@ class CharTokenizer:
         }
         
     def save(self, file: Path) -> None:
-        with open(file, "w") as f:
-            json.dump(self.tokenizer, f)
+        with open(file, "w", encoding='utf-8') as f:
+            json.dump(self.tokenizer, f, ensure_ascii=False, indent=4)
     
-    def load(self, file: Path) -> None:
-        with open(file, "r") as f:
-            json.loads(self.tokenizer, f)
+    def load(self, file: Path,) -> None:
+        with open(file, "r", encoding='utf-8') as f:
+            self.tokenizer = json.load(f)
+        
+        self.chars = self.tokenizer["chars"]
+        self.vocab_size = self.tokenizer["vocab_size"]
+        self.character_to_index = {char: idx for idx, char in enumerate(self.chars)}
+        self.index_to_character = {idx: char for idx, char in enumerate(self.chars)}  
     
     def encode(self, x: List[str]) -> List[int]:
         return [self.character_to_index[char] for char in x]
