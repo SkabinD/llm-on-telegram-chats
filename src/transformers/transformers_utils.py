@@ -4,9 +4,8 @@ from datasets import Dataset
 from typing import Dict
 
 
-def init_pretrained_model(config: Dict[str, str], **kwargs):
-    manual_seed(config["RANDOM_SEED"])
-    model_name = config["MODEL_NAME"]
+def init_pretrained_model(model_name: str, random_seed: int = 0, **kwargs):
+    manual_seed(random_seed)
     
     model = AutoModelForCausalLM.from_pretrained(model_name, **kwargs)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -16,7 +15,3 @@ def init_pretrained_model(config: Dict[str, str], **kwargs):
 
 def tokenize_function(sample: Dict[str, str], tokenizer):
     return tokenizer(sample["context"], sample["response"], truncation=True, padding="max_length")
-    
-
-# if __name__ == "__main__":    
-    

@@ -1,25 +1,17 @@
-import os
-import json
 from datasets import Dataset
 from typing import Dict, List
 from tqdm import tqdm
 
 
-def get_chats(config: Dict[str, str]) -> List[Dict]:
-    data_path = os.path.join(config["DATA_DIR"], config["DATA_NAME"])
-    
-    with open(data_path, "r") as f:
-        data = json.load(f)
-        
-    chats = data["chats"]["list"][1:]
-    chats = sorted(chats, key=lambda x: len(x["messages"]), reverse=True)
-    chats = chats[:20]
-    
+def get_chats(raw_data: str, chat_sort_func=lambda x: len(x["messages"]), n_chats: int = 20) -> List[Dict]:
+    chats = raw_data["chats"]["list"][1:]
+    if chat_sort_func:
+        chats = sorted(chats, key=chat_sort_func, reverse=True)
+    chats = chats[:n_chats]
     return chats
 
-def parse_data(chats: List[Dict], config: Dict[str, str]) -> List[Dict]:
-    name = config["RESPONSE_NAME"]
-    
+
+def parse_data(chats: List[Dict], name: str) -> List[Dict]:
     dialogs = []
     for chat in chats:
         messages = chat["messages"]
@@ -78,17 +70,21 @@ def parse_data(chats: List[Dict], config: Dict[str, str]) -> List[Dict]:
                 message_sequence = []
                 current_chat_name = name_from
 
-            message_sequence.append(text)        
+            message_sequence.append(text)
+        
     return dialogs
+
 
 def get_dataset(dialogs: List[Dict]) -> Dataset:
     return Dataset.from_list(dialogs)
 
-def data_full_routine(config: Dict[str, str]) -> Dataset:
-    chats = get_chats(config)
-    dialogs = parse_data(chats, config)
+
+def data_full_routine(raw_data: Dict, name: str) -> Dataset:
+    chats = get_chats(raw_data)
+    dialogs = parse_data(chats, name)
     dataset = get_dataset(dialogs)
     return dataset
+
 
 if __name__ == "__main__":
     import yaml 
