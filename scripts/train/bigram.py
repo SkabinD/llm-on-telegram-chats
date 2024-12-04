@@ -12,8 +12,8 @@ import argparse
 
 import torch
 from torch.optim import AdamW
-from source.tokenizers.char import CharTokenizer
-from source.modules.bigram_language_model import BigramLanguageModel
+from src.tokenizers.char import CharTokenizer
+from src.modules.bigram_language_model import BigramLanguageModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", type=str, required=False)
